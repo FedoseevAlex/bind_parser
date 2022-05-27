@@ -1,5 +1,5 @@
-from pprint import pprint
 import pathlib
+from pprint import pprint
 
 from bind_lexer_sly import BindLexer
 from bind_parser_sly import BindParser

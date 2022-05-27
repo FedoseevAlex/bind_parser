@@ -1,6 +1,6 @@
 from ipaddress import IPv4Address, IPv6Address
 
-from sly import Lexer, Parser
+from sly import Lexer
 
 class BindLexer(Lexer):
     tokens = {

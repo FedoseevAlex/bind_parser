@@ -1,9 +1,10 @@
+import ipaddress
+
 from pyrser import grammar, meta
 from pyrser.directives import ignore
 from pyrser.hooks import dump_nodes
 from pyrser.hooks.echo import echo_nodes
 from pyrser.passes import to_yml
-import ipaddress
 
 text = """
 10.100.0.1
