@@ -1,0 +1,16 @@
+example.com. 300 IN SOA ns1.hostmaster.com. support.hostmaster.com. 2022041833 10800 3600 604800 300
+example.com. 86400 IN A 1.2.3.4
+example.com. 86400 IN AAAA 2001:db00:603:31::ab2
+example.com. 86400 IN MX 20 mail.example.com.
+example.com. 86400 IN NS ns1.hostmaster.com.
+example.com. 86400 IN NS ns3.hostmaster.com. ; this is ns3 record, wow
+example.com. 86400 IN NS ns4.hostmaster.com.
+example.com. 86400 IN NS ns2.hostmaster.com.
+_1_acme_challenge.example.com. 86400 IN TXT "so; wow; so text"
+_2_acme_challenge.example.com. 86400 IN TXT "v=spf1 include:_spf.example.com. include:_spf -all"
+_3_acme_challenge.example.com. 86400 IN TXT "spf2.0/mfrom,pra ip4:1.2.3.4 ip4:2.3.4.5 ip4:3.4.5.6 include:senderid.sos.com ~all"
+_4_acme_challenge.example.com. 86400 IN TXT "spf2.0/mfrom,pra ip4:2.3.4.5 ip4:3.4.5.6 ip4:4.5.6.7 include:senderid.wow.com ~all"
+inbox.example.com. 86400 IN MX 10 example.com.
+mail.example.com. 86400 IN MX 20 example.com.
+www.example.com. 86400 IN CNAME example.com.
+xmpp.example.com. 86400 IN SRV 10 5 5222 xmpp.example.com.

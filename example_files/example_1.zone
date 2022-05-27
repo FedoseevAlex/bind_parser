@@ -1,0 +1,33 @@
+; example from domains-api
+$TTL 36000
+bind-zone.com.    IN      SOA     ns1.bind-zone.com. hostmaster.bind-zone.com. (
+                          2005081201       ; serial
+                          28800            ; refresh (8 hours)
+                          1800             ; retry (30 mins)
+                          2592000          ; expire (30 days)
+                          86400 )          ; minimum (1 day)
+bind-zone.com.            86400   NS       ns1.bind-zone.com.
+bind-zone.com.            86400   NS       ns2.bind-zone.com.
+bind-zone.com.            86400   MX 10    mail.bind-zone.com.
+bind-zone.com.            86400   MX 20    mail2.bind-zone.com.
+bind-zone.com.            86400   A        192.168.10.10
+ns1.bind-zone.com.z       86400   A        192.168.1.10
+ns2.bind-zone.com.        86400   A        192.168.1.20
+mail.bind-zone.com.       86400   A        192.168.2.10
+mail.bind-zone.com.       86400   A        192.168.2.10
+mail2.bind-zone.com.      86400   A        192.168.2.20
+www2.bind-zone.com.       86400   A        192.168.10.20
+v6                        86400   AAAA     2001:db8::3
+txt_epta                  IN      TXT      "Located in a black hole" " somewhere"
+joe                       IN      TXT      ("Located in a black hole"
+                                         " somewhere over the rainbow")
+www                       86400   CNAME     @
+ftp.bind-zone.com.        86400   CNAME     @
+webmail.bind-zone.com.    86400   CNAME     bind-zone.com.
+$ORIGIN ftp.bind-zone.com.
+$TTL 12345
+ololo                     IN      A         10.10.10.10
+$ORIGIN bind-zone.com.
+_foobar._tcp              SRV 0 1 9 old-slow-box.bind-zone.com.
+                          SRV 0 3 9 new-fast-box.bind-zone.com.
+*._tcp                    SRV  0 0 0 @
