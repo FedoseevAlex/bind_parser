@@ -31,16 +31,23 @@ class BindParser(Parser):
         p.zone.append(p[1])
         return p.zone
 
-    @_(
-        "soa_record",
-        "a_record",
-        "aaaa_record",
-        "ns_cname_record",
-        "mx_record",
-        "txt_record",
-        "srv_record",
-    )
+    @_("record_header record_content")
     def record(self, p):
+        return dict(
+            **p.record_header,
+            **p.record_content,
+        )
+
+    @_(
+        "soa_content",
+        "a_content",
+        "aaaa_content",
+        "ns_cname_content",
+        "mx_content",
+        "txt_content",
+        "srv_content",
+    )
+    def record_content(self, p):
         return p[0]
 
     @_("DOMAIN_NAME INTEGER CLASS RECORD_TYPE")
@@ -49,13 +56,6 @@ class BindParser(Parser):
             name=p.DOMAIN_NAME,
             ttl=p.INTEGER,
             type=p.RECORD_TYPE,
-        )
-
-    @_("record_header soa_content")
-    def soa_record(self, p):
-        return dict(
-            **p.record_header,
-            **p.soa_content,
         )
 
     @_("DOMAIN_NAME DOMAIN_NAME INTEGER INTEGER INTEGER INTEGER INTEGER")
@@ -70,48 +70,37 @@ class BindParser(Parser):
             minimum=p.INTEGER4,
         )
 
-    @_("record_header INTEGER INTEGER INTEGER DOMAIN_NAME")
-    def srv_record(self, p):
+    @_("INTEGER INTEGER INTEGER DOMAIN_NAME")
+    def srv_content(self, p):
         return dict(
-            **p.record_header,
             priority=p.INTEGER0,
             weight=p.INTEGER1,
             port=p.INTEGER2,
             target=p.DOMAIN_NAME,
         )
 
-    @_("record_header INTEGER DOMAIN_NAME")
-    def mx_record(self, p):
+    @_("INTEGER DOMAIN_NAME")
+    def mx_content(self, p):
         return dict(
-            **p.record_header,
             content=p.DOMAIN_NAME,
             priority=p.INTEGER,
         )
 
-    @_("record_header DOMAIN_NAME")
-    def ns_cname_record(self, p):
-        return dict(
-            **p.record_header,
-            content=p.DOMAIN_NAME,
-        )
+    @_("DOMAIN_NAME")
+    def ns_cname_content(self, p):
+        return dict(content=p.DOMAIN_NAME)
 
-    @_("record_header IPV6")
-    def aaaa_record(self, p):
-        return dict(
-            **p.record_header,
-            content=p.IPV6,
-        )
+    @_("IPV6")
+    def aaaa_content(self, p):
+        return dict(content=p.IPV6)
 
-    @_("record_header IPV4")
-    def a_record(self, p):
-        return dict(
-            **p.record_header,
-            content=p.IPV4,
-        )
+    @_("IPV4")
+    def a_content(self, p):
+        return dict(content=p.IPV4)
 
-    @_("record_header TEXT")
-    def txt_record(self, p):
-        return dict(**p.record_header, content=p.TEXT.strip('"'))
+    @_("TEXT")
+    def txt_content(self, p):
+        return dict(content=p.TEXT.strip('"'))
 
     @_("COMMENT")
     def comment(self, p):
