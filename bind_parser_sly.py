@@ -3,6 +3,8 @@ from sly import Parser
 
 class BindParser(Parser):
     debugfile = "parser.out"
+    origin_domain = "lol.no.origin.domain.try.to.specify.origin."
+    default_ttl = 1000
     tokens = {
         "INTEGER",
         "DOMAIN_NAME",
@@ -13,19 +15,24 @@ class BindParser(Parser):
         "TEXT",
         "IPV4",
         "IPV6",
-        "COMMENT",
     }
+    # precedence = (
+    #     ('left', 'DOMAIN_NAME'),
+    #     ('left', 'RECORD_TYPE'),
+    # )
 
     @_(
         "record",
-        "comment",
+        "ttl",
+        "origin"
     )
     def zone(self, p):
         return [p[0]]
 
     @_(
-        "zone comment",
         "zone record",
+        "zone ttl",
+        "zone origin",
     )
     def zone(self, p):
         p.zone.append(p[1])
@@ -51,12 +58,21 @@ class BindParser(Parser):
         return p[0]
 
     @_("DOMAIN_NAME INTEGER CLASS RECORD_TYPE")
+    @_("INTEGER CLASS RECORD_TYPE")
+    @_("CLASS RECORD_TYPE")
+    @_("RECORD_TYPE")
+    @_("DOMAIN_NAME CLASS RECORD_TYPE")
+    @_("DOMAIN_NAME RECORD_TYPE")
     def record_header(self, p):
         return dict(
-            name=p.DOMAIN_NAME,
-            ttl=p.INTEGER,
+            name=getattr(p, "DOMAIN_NAME", self.origin_domain),
+            ttl=getattr(p, "INTEGER", self.default_ttl),
             type=p.RECORD_TYPE,
         )
+
+    @_("DOMAIN_NAME")
+    def ns_cname_content(self, p):
+        return dict(content=p.DOMAIN_NAME)
 
     @_("DOMAIN_NAME DOMAIN_NAME INTEGER INTEGER INTEGER INTEGER INTEGER")
     def soa_content(self, p):
@@ -86,10 +102,6 @@ class BindParser(Parser):
             priority=p.INTEGER,
         )
 
-    @_("DOMAIN_NAME")
-    def ns_cname_content(self, p):
-        return dict(content=p.DOMAIN_NAME)
-
     @_("IPV6")
     def aaaa_content(self, p):
         return dict(content=p.IPV6)
@@ -102,6 +114,14 @@ class BindParser(Parser):
     def txt_content(self, p):
         return dict(content=p.TEXT.strip('"'))
 
-    @_("COMMENT")
-    def comment(self, p):
-        return dict(comment=p.COMMENT)
+    @_("ORIGIN DOMAIN_NAME")
+    def origin(self, p):
+        self.origin_domain = p.DOMAIN_NAME
+        print(f"{self.origin_domain=}")
+        return ('origin', p.DOMAIN_NAME)
+
+    @_("TTL INTEGER")
+    def ttl(self, p):
+        self.default_ttl = p.INTEGER
+        print(f"{self.default_ttl=}")
+        return ('ttl', p.INTEGER)

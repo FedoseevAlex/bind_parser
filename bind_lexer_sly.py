@@ -14,9 +14,7 @@ class BindLexer(Lexer):
         "TEXT",
         "IPV4",
         "IPV6",
-        "COMMENT",
     }
-    literals = {"(", ")"}
 
     _IPV4_SEGMENT = r"((2[0-5]{2})|(1[0-9]{2})|([1-9]?[0-9]))"
 
@@ -37,18 +35,21 @@ class BindLexer(Lexer):
 
     CLASS = r"(IN|CH|CS|HS)"
     TTL = r"\$TTL"
-    ORIGIN = r"(\$ORIGIN|@)"
+    ORIGIN = r"(\$ORIGIN)"
     RECORD_TYPE = r"(AAAA|A|SOA|TXT|SRV|CNAME|ANAME|NS|MX)"
-    # TEXT = r'(?<=")[\w\s\W]*?(?=")'
     TEXT = r'"[\w\s\W]*?"'
-    DOMAIN_NAME = r"(\*\.)?[\w\-\.]+"
-    COMMENT = r";.*"
+    DOMAIN_NAME = r"((\*\.)?[\w\-\.]+|@)"
 
     @_(r"\n+")
     def ignore_newline(self, t):
         self.lineno += t.value.count("\n")
 
+    ignore_parentheses = r"[\(\)]"
     ignore_whitespace = r"\s+"
+
+    @_(r";.*")
+    def ignore_comments(self, t):
+        self.lineno += t.value.count("\n")
 
     def error(self, t):
         print(f'Line {self.lineno}: Bad character "{t.value[0]}"\n')
