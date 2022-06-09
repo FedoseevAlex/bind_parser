@@ -1,25 +1,15 @@
+import re
 from sly import Parser
+
+from bind_lexer_sly import BindLexer
 
 
 class BindParser(Parser):
     debugfile = "parser.out"
     origin_domain = "lol.no.origin.domain.try.to.specify.origin."
+    local_domain = "kek.no.local.domain"
     default_ttl = 1000
-    tokens = {
-        "INTEGER",
-        "DOMAIN_NAME",
-        "CLASS",
-        "RECORD_TYPE",
-        "TTL",
-        "ORIGIN",
-        "TEXT",
-        "IPV4",
-        "IPV6",
-    }
-    # precedence = (
-    #     ('left', 'DOMAIN_NAME'),
-    #     ('left', 'RECORD_TYPE'),
-    # )
+    tokens = BindLexer.tokens
 
     @_(
         "record",
@@ -39,9 +29,17 @@ class BindParser(Parser):
         return p.zone
 
     @_("record_header record_content")
+    @_("record_content")
     def record(self, p):
+        record_header = {}
+        if hasattr(p, 'record_header'):
+            record_header = p.record_header
+        else:
+            record_header['ttl'] = self.default_ttl
+            record_header['name'] = self.origin_domain
+
         return dict(
-            **p.record_header,
+            **record_header,
             **p.record_content,
         )
 
@@ -49,7 +47,8 @@ class BindParser(Parser):
         "soa_content",
         "a_content",
         "aaaa_content",
-        "ns_cname_content",
+        "ns_content",
+        "cname_content",
         "mx_content",
         "txt_content",
         "srv_content",
@@ -57,24 +56,29 @@ class BindParser(Parser):
     def record_content(self, p):
         return p[0]
 
-    @_("DOMAIN_NAME INTEGER CLASS RECORD_TYPE")
-    @_("INTEGER CLASS RECORD_TYPE")
-    @_("CLASS RECORD_TYPE")
-    @_("RECORD_TYPE")
-    @_("DOMAIN_NAME CLASS RECORD_TYPE")
-    @_("DOMAIN_NAME RECORD_TYPE")
+    @_("DOMAIN_NAME INTEGER CLASS")
+    @_("INTEGER CLASS")
+    @_("CLASS")
+    @_("DOMAIN_NAME CLASS")
+    @_("DOMAIN_NAME")
     def record_header(self, p):
+        domain_name = self.origin_domain
+        if hasattr(p, 'DOMAIN_NAME'):
+            domain_name = p.DOMAIN_NAME
         return dict(
-            name=getattr(p, "DOMAIN_NAME", self.origin_domain),
+            name=domain_name,
             ttl=getattr(p, "INTEGER", self.default_ttl),
-            type=p.RECORD_TYPE,
         )
 
-    @_("DOMAIN_NAME")
-    def ns_cname_content(self, p):
-        return dict(content=p.DOMAIN_NAME)
+    @_("NS DOMAIN_NAME")
+    def ns_content(self, p):
+        return dict(content=p.DOMAIN_NAME, type=p.NS)
 
-    @_("DOMAIN_NAME DOMAIN_NAME INTEGER INTEGER INTEGER INTEGER INTEGER")
+    @_("CNAME DOMAIN_NAME")
+    def cname_content(self, p):
+        return dict(content=p.DOMAIN_NAME, type=p.CNAME)
+
+    @_("SOA DOMAIN_NAME DOMAIN_NAME INTEGER INTEGER INTEGER INTEGER INTEGER")
     def soa_content(self, p):
         return dict(
             ns=p.DOMAIN_NAME0,
@@ -84,35 +88,38 @@ class BindParser(Parser):
             retry=p.INTEGER2,
             expire=p.INTEGER3,
             minimum=p.INTEGER4,
+            type=p.SOA,
         )
 
-    @_("INTEGER INTEGER INTEGER DOMAIN_NAME")
+    @_("SRV INTEGER INTEGER INTEGER DOMAIN_NAME")
     def srv_content(self, p):
         return dict(
             priority=p.INTEGER0,
             weight=p.INTEGER1,
             port=p.INTEGER2,
             target=p.DOMAIN_NAME,
+            type=p.SRV,
         )
 
-    @_("INTEGER DOMAIN_NAME")
+    @_("MX INTEGER DOMAIN_NAME")
     def mx_content(self, p):
         return dict(
             content=p.DOMAIN_NAME,
             priority=p.INTEGER,
+            type=p.MX,
         )
 
-    @_("IPV6")
+    @_("AAAA IPV6")
     def aaaa_content(self, p):
-        return dict(content=p.IPV6)
+        return dict(content=p.IPV6, type=p.AAAA)
 
-    @_("IPV4")
+    @_("A IPV4")
     def a_content(self, p):
-        return dict(content=p.IPV4)
+        return dict(content=p.IPV4, type=p.A)
 
-    @_("TEXT")
+    @_("TXT TEXT")
     def txt_content(self, p):
-        return dict(content=p.TEXT.strip('"'))
+        return dict(content=p.TEXT.strip('"'), type=p.TXT)
 
     @_("ORIGIN DOMAIN_NAME")
     def origin(self, p):

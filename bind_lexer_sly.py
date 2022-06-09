@@ -4,17 +4,40 @@ from sly import Lexer
 
 
 class BindLexer(Lexer):
+    record_types = {
+        "RECORD_TYPE",
+        "SOA",
+        "NS",
+        "A",
+        "AAAA",
+        "MX",
+        "TXT",
+        "CNAME",
+        "SRV",
+    }
     tokens = {
         "INTEGER",
         "DOMAIN_NAME",
         "CLASS",
-        "RECORD_TYPE",
         "TTL",
         "ORIGIN",
         "TEXT",
         "IPV4",
         "IPV6",
     }
+    # add record type tokens
+    tokens.update(record_types)
+
+    RECORD_TYPE['SOA'] = "SOA"
+    RECORD_TYPE['NS'] = "NS"
+    RECORD_TYPE['A'] = "A"
+    RECORD_TYPE['AAAA'] = "AAAA"
+    RECORD_TYPE['MX'] = "MX"
+    RECORD_TYPE['TXT'] = "TXT"
+    RECORD_TYPE['CNAME'] = "CNAME"
+    RECORD_TYPE['SRV'] = "SRV"
+
+    scope = 0
 
     _IPV4_SEGMENT = r"((2[0-5]{2})|(1[0-9]{2})|([1-9]?[0-9]))"
 
@@ -40,11 +63,24 @@ class BindLexer(Lexer):
     TEXT = r'"[\w\s\W]*?"'
     DOMAIN_NAME = r"((\*\.)?[\w\-\.]+|@)"
 
+    # @_(r"\n+")
+    # def NEWLINE(self, t):
+    #     t.value = "\n"
+    #     if self.scope != 0:
+    #         return None
+    #     return t
     @_(r"\n+")
     def ignore_newline(self, t):
         self.lineno += t.value.count("\n")
 
-    ignore_parentheses = r"[\(\)]"
+    @_(r"\(")
+    def ingnore_lparent(self, t):
+        self.scope += 1
+
+    @_(r"\)")
+    def ingnore_rparent(self, t):
+        self.scope -= 1
+
     ignore_whitespace = r"\s+"
 
     @_(r";.*")

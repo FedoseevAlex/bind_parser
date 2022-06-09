@@ -18,6 +18,6 @@ if __name__ == "__main__":
         tokens = lexer.tokenize(data)
         print(f"{tokens=}")
         result = parser.parse(tokens)
-        pprint(result)
+        pprint(result, width=360)
     except EOFError:
         pass
