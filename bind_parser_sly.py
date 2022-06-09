@@ -57,6 +57,7 @@ class BindParser(Parser):
         return p[0]
 
     @_("DOMAIN_NAME INTEGER CLASS")
+    @_("DOMAIN_NAME INTEGER")
     @_("INTEGER CLASS")
     @_("CLASS")
     @_("DOMAIN_NAME CLASS")
@@ -122,9 +123,14 @@ class BindParser(Parser):
     def a_content(self, p):
         return dict(content=p.IPV4, type=p.A)
 
-    @_("TXT TEXT")
+    @_("TXT text")
     def txt_content(self, p):
-        return dict(content=p.TEXT.strip('"'), type=p.TXT)
+        return dict(content=p.text, type=p.TXT)
+
+    @_("TEXT")
+    @_("text TEXT")
+    def text(self, p):
+        return getattr(p, 'text', '') + p.TEXT.strip("\"")
 
     @_("ORIGIN DOMAIN_NAME")
     def origin(self, p):
