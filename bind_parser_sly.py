@@ -6,8 +6,8 @@ from bind_lexer_sly import BindLexer
 
 class BindParser(Parser):
     debugfile = "parser.out"
-    origin_domain = "lol.no.origin.domain.try.to.specify.origin."
-    local_domain = "kek.no.local.domain"
+    origin_domain = ""
+    local_domain = ""
     default_ttl = 1000
     tokens = BindLexer.tokens
 
@@ -36,7 +36,7 @@ class BindParser(Parser):
             record_header = p.record_header
         else:
             record_header['ttl'] = self.default_ttl
-            record_header['name'] = self.origin_domain
+            record_header['name'] = ".".join([self.local_domain, self.origin_domain])
 
         return dict(
             **record_header,
@@ -62,11 +62,16 @@ class BindParser(Parser):
     @_("DOMAIN_NAME CLASS")
     @_("DOMAIN_NAME")
     def record_header(self, p):
-        domain_name = self.origin_domain
         if hasattr(p, 'DOMAIN_NAME'):
-            domain_name = p.DOMAIN_NAME
+            self.local_domain = p.DOMAIN_NAME
+
+        if self.local_domain == '@':
+            domain_name = self.origin_domain
+        else:
+            domain_name = ".".join([self.local_domain, self.origin_domain])
+
         return dict(
-            name=domain_name,
+            name= domain_name,
             ttl=getattr(p, "INTEGER", self.default_ttl),
         )
 
