@@ -2,15 +2,15 @@ import contextlib
 import pathlib
 from pprint import pprint
 
-from bind_lexer_sly import BindLexer
-from bind_parser_sly import BindParser
+from sly_zone.lexer import  ZoneLexer
+from sly_zone.parser import ZoneParser
 
 if __name__ == "__main__":
     for zone_file in pathlib.Path('example_files').iterdir():
         print("---" * 80)
         data = zone_file.read_text()
 
-        lexer = BindLexer()
+        lexer = ZoneLexer()
         tokens = list(lexer.tokenize(data))
 
         tokens_for_print = [f"{tok.type}: {tok.value}" for tok in tokens]
@@ -18,6 +18,6 @@ if __name__ == "__main__":
 
         with contextlib.suppress(EOFError):
             tokens = lexer.tokenize(data)
-            parser = BindParser()
+            parser = ZoneParser()
             result = parser.parse(tokens)
             pprint(result, width=360)

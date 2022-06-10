@@ -3,9 +3,9 @@ from ipaddress import IPv4Address, IPv6Address
 from sly import Lexer
 
 
-class BindLexer(Lexer):
+class ZoneLexer(Lexer):
+    scope = 0
     record_types = {
-        "RECORD_TYPE",
         "SOA",
         "NS",
         "A",
@@ -28,17 +28,6 @@ class BindLexer(Lexer):
     # add record type tokens
     tokens.update(record_types)
 
-    RECORD_TYPE['SOA'] = "SOA"
-    RECORD_TYPE['NS'] = "NS"
-    RECORD_TYPE['A'] = "A"
-    RECORD_TYPE['AAAA'] = "AAAA"
-    RECORD_TYPE['MX'] = "MX"
-    RECORD_TYPE['TXT'] = "TXT"
-    RECORD_TYPE['CNAME'] = "CNAME"
-    RECORD_TYPE['SRV'] = "SRV"
-
-    scope = 0
-
     _IPV4_SEGMENT = r"((2[0-5]{2})|(1[0-9]{2})|([1-9]?[0-9]))"
 
     @_(r"({0}\.){{3}}({0})".format(_IPV4_SEGMENT))
@@ -59,7 +48,14 @@ class BindLexer(Lexer):
     CLASS = r"(IN|CH|CS|HS)"
     TTL = r"\$TTL"
     ORIGIN = r"(\$ORIGIN)"
-    RECORD_TYPE = r"(AAAA|A|SOA|TXT|SRV|CNAME|ANAME|NS|MX)"
+    AAAA = "AAAA"
+    A = "A"
+    SOA = "SOA"
+    TXT = "TXT"
+    SRV = "SRV"
+    CNAME = "CNAME"
+    NS = "NS"
+    MX = "MX"
     TEXT = r'"[\w\s\W]*?"'
     DOMAIN_NAME = r"((\*\.)?[\w\-\.]+|@)"
 

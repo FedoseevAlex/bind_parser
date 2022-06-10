@@ -1,14 +1,14 @@
 from sly import Parser
 
-from bind_lexer_sly import BindLexer
+from sly_zone.lexer import ZoneLexer
 
 
-class BindParser(Parser):
+class ZoneParser(Parser):
     debugfile = "parser.out"
     origin_domain = ""
     local_domain = ""
     default_ttl = 1000
-    tokens = BindLexer.tokens
+    tokens = ZoneLexer.tokens
 
     @_(
         "record",
