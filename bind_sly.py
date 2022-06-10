@@ -8,6 +8,7 @@ from sly_zone.parser import ZoneParser
 if __name__ == "__main__":
     for zone_file in pathlib.Path('example_files').iterdir():
         print("---" * 80)
+        print(zone_file)
         data = zone_file.read_text()
 
         lexer = ZoneLexer()

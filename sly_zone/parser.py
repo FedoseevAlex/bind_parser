@@ -51,6 +51,7 @@ class ZoneParser(Parser):
         "mx_content",
         "txt_content",
         "srv_content",
+        "alias_content",
     )
     def record_content(self, p):
         return p[0]
@@ -84,6 +85,10 @@ class ZoneParser(Parser):
     @_("CNAME domain_name")
     def cname_content(self, p):
         return dict(content=p.domain_name, type=p.CNAME)
+
+    @_("ALIAS domain_name")
+    def alias_content(self, p):
+        return dict(content=p.domain_name, type=p.ALIAS)
 
     @_("SOA domain_name domain_name INTEGER INTEGER INTEGER INTEGER INTEGER")
     def soa_content(self, p):

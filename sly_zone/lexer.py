@@ -14,6 +14,7 @@ class ZoneLexer(Lexer):
         "TXT",
         "CNAME",
         "SRV",
+        "ALIAS",
     }
     tokens = {
         "INTEGER",
@@ -49,6 +50,7 @@ class ZoneLexer(Lexer):
     TTL = r"\$TTL"
     ORIGIN = r"(\$ORIGIN)"
     AAAA = "AAAA"
+    ALIAS = "ALIAS"
     A = "A"
     SOA = "SOA"
     TXT = "TXT"
