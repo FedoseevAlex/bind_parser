@@ -1,4 +1,3 @@
-import re
 from sly import Parser
 
 from bind_lexer_sly import BindLexer
@@ -56,39 +55,41 @@ class BindParser(Parser):
     def record_content(self, p):
         return p[0]
 
-    @_("DOMAIN_NAME INTEGER CLASS")
-    @_("DOMAIN_NAME INTEGER")
+    @_("domain_name INTEGER CLASS")
+    @_("domain_name INTEGER")
     @_("INTEGER CLASS")
     @_("CLASS")
-    @_("DOMAIN_NAME CLASS")
-    @_("DOMAIN_NAME")
+    @_("domain_name CLASS")
+    @_("domain_name")
     def record_header(self, p):
-        if hasattr(p, 'DOMAIN_NAME'):
-            self.local_domain = p.DOMAIN_NAME
+        if hasattr(p, 'domain_name'):
+            self.local_domain = p.domain_name
+        domain_name_parts = []
+        if self.local_domain:
+            domain_name_parts.append(self.local_domain)
+        if self.origin_domain:
+            domain_name_parts.append(self.origin_domain)
 
-        if self.local_domain == '@':
-            domain_name = self.origin_domain
-        else:
-            domain_name = ".".join([self.local_domain, self.origin_domain])
+        domain_name = ".".join(domain_name_parts)
 
         return dict(
             name= domain_name,
             ttl=getattr(p, "INTEGER", self.default_ttl),
         )
 
-    @_("NS DOMAIN_NAME")
+    @_("NS domain_name")
     def ns_content(self, p):
-        return dict(content=p.DOMAIN_NAME, type=p.NS)
+        return dict(content=p.domain_name, type=p.NS)
 
-    @_("CNAME DOMAIN_NAME")
+    @_("CNAME domain_name")
     def cname_content(self, p):
-        return dict(content=p.DOMAIN_NAME, type=p.CNAME)
+        return dict(content=p.domain_name, type=p.CNAME)
 
-    @_("SOA DOMAIN_NAME DOMAIN_NAME INTEGER INTEGER INTEGER INTEGER INTEGER")
+    @_("SOA domain_name domain_name INTEGER INTEGER INTEGER INTEGER INTEGER")
     def soa_content(self, p):
         return dict(
-            ns=p.DOMAIN_NAME0,
-            email=p.DOMAIN_NAME1,
+            ns=p.domain_name0,
+            email=p.domain_name1,
             serial=p.INTEGER0,
             refresh=p.INTEGER1,
             retry=p.INTEGER2,
@@ -97,20 +98,20 @@ class BindParser(Parser):
             type=p.SOA,
         )
 
-    @_("SRV INTEGER INTEGER INTEGER DOMAIN_NAME")
+    @_("SRV INTEGER INTEGER INTEGER domain_name")
     def srv_content(self, p):
         return dict(
             priority=p.INTEGER0,
             weight=p.INTEGER1,
             port=p.INTEGER2,
-            target=p.DOMAIN_NAME,
+            target=p.domain_name,
             type=p.SRV,
         )
 
-    @_("MX INTEGER DOMAIN_NAME")
+    @_("MX INTEGER domain_name")
     def mx_content(self, p):
         return dict(
-            content=p.DOMAIN_NAME,
+            content=p.domain_name,
             priority=p.INTEGER,
             type=p.MX,
         )
@@ -132,14 +133,18 @@ class BindParser(Parser):
     def text(self, p):
         return getattr(p, 'text', '') + p.TEXT.strip("\"")
 
-    @_("ORIGIN DOMAIN_NAME")
+    @_("ORIGIN domain_name")
     def origin(self, p):
-        self.origin_domain = p.DOMAIN_NAME
+        self.origin_domain = p.domain_name
         print(f"{self.origin_domain=}")
-        return ('origin', p.DOMAIN_NAME)
+        return ('origin', p.domain_name)
 
     @_("TTL INTEGER")
     def ttl(self, p):
         self.default_ttl = p.INTEGER
         print(f"{self.default_ttl=}")
         return ('ttl', p.INTEGER)
+
+    @_("DOMAIN_NAME")
+    def domain_name(self, p):
+        return self.origin_domain if p.DOMAIN_NAME == "@" else p.DOMAIN_NAME

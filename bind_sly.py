@@ -1,3 +1,4 @@
+import contextlib
 import pathlib
 from pprint import pprint
 
@@ -5,21 +6,18 @@ from bind_lexer_sly import BindLexer
 from bind_parser_sly import BindParser
 
 if __name__ == "__main__":
-    data = pathlib.Path("example_files/example_1.zone").read_text()
-    # data = pathlib.Path("example_files/example_2.zone").read_text()
-    # data = pathlib.Path("example_files/example_3.zone").read_text()
-    # data = "boba.ru. 86400 IN A 1.2.3.4"
+    for zone_file in pathlib.Path('example_files').iterdir():
+        print("---" * 80)
+        data = zone_file.read_text()
 
-    lexer = BindLexer()
-    tokens = lexer.tokenize(data)
-    for tok in tokens:
-        print("type=%r, value=%r" % (tok.type, tok.value))
+        lexer = BindLexer()
+        tokens = list(lexer.tokenize(data))
 
-    parser = BindParser()
-    try:
-        tokens = lexer.tokenize(data)
-        print(f"{tokens=}")
-        result = parser.parse(tokens)
-        pprint(result, width=360)
-    except EOFError:
-        pass
+        tokens_for_print = [f"{tok.type}: {tok.value}" for tok in tokens]
+        pprint(tokens_for_print, compact=True, width=120)
+
+        with contextlib.suppress(EOFError):
+            tokens = lexer.tokenize(data)
+            parser = BindParser()
+            result = parser.parse(tokens)
+            pprint(result, width=360)

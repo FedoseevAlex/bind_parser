@@ -63,12 +63,6 @@ class BindLexer(Lexer):
     TEXT = r'"[\w\s\W]*?"'
     DOMAIN_NAME = r"((\*\.)?[\w\-\.]+|@)"
 
-    # @_(r"\n+")
-    # def NEWLINE(self, t):
-    #     t.value = "\n"
-    #     if self.scope != 0:
-    #         return None
-    #     return t
     @_(r"\n+")
     def ignore_newline(self, t):
         self.lineno += t.value.count("\n")
