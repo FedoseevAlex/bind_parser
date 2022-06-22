@@ -1,4 +1,4 @@
-$ORIGIN example.com
+$ORIGIN example.com.
 $TTL 86400
 @     IN     SOA    dns1.example.com.     hostmaster.example.com. (
                     2001062501 ; serial
@@ -21,5 +21,5 @@ mail2        IN     CNAME   server2
 www          IN     CNAME   server2
 single            IN     TXT     "everything I do"
 singleTTL  100    IN     TXT     "everything I do"
-multi             IN     TXT     "everything I do" "I do for you"
-multiTTL  100     IN     TXT     "everything I do" "I do for you"
+multi             IN     TXT     "everything I do; " "I do for you"
+multiTTL  100     IN     TXT     "everything I do; " "I do for you"

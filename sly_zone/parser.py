@@ -4,17 +4,13 @@ from sly_zone.lexer import ZoneLexer
 
 
 class ZoneParser(Parser):
-    debugfile = "parser.out"
-    origin_domain = ""
-    local_domain = ""
-    default_ttl = 1000
-    tokens = ZoneLexer.tokens
+    debugfile: str = "parser.out"
+    origin_domain: str = ""
+    previous_domain: str = ""
+    default_ttl: int = 1000
+    tokens: set = ZoneLexer.tokens
 
-    @_(
-        "record",
-        "ttl",
-        "origin"
-    )
+    @_("record", "ttl", "origin")
     def zone(self, p):
         return [p[0]]
 
@@ -31,11 +27,11 @@ class ZoneParser(Parser):
     @_("record_content")
     def record(self, p):
         record_header = {}
-        if hasattr(p, 'record_header'):
+        if hasattr(p, "record_header"):
             record_header = p.record_header
         else:
-            record_header['ttl'] = self.default_ttl
-            record_header['name'] = ".".join([self.local_domain, self.origin_domain])
+            record_header["ttl"] = self.default_ttl
+            record_header["name"] = ".".join([self.previous_domain, self.origin_domain])
 
         return dict(
             **record_header,
@@ -63,18 +59,12 @@ class ZoneParser(Parser):
     @_("domain_name CLASS")
     @_("domain_name")
     def record_header(self, p):
-        if hasattr(p, 'domain_name'):
-            self.local_domain = p.domain_name
-        domain_name_parts = []
-        if self.local_domain:
-            domain_name_parts.append(self.local_domain)
-        if self.origin_domain:
-            domain_name_parts.append(self.origin_domain)
-
-        domain_name = ".".join(domain_name_parts)
+        domain_name = self.previous_domain
+        if hasattr(p, "domain_name"):
+            domain_name = p.domain_name
 
         return dict(
-            name= domain_name,
+            name=domain_name,
             ttl=getattr(p, "INTEGER", self.default_ttl),
         )
 
@@ -136,20 +126,28 @@ class ZoneParser(Parser):
     @_("TEXT")
     @_("text TEXT")
     def text(self, p):
-        return getattr(p, 'text', '') + p.TEXT.strip("\"")
+        return getattr(p, "text", "") + p.TEXT.strip('"')
 
     @_("ORIGIN domain_name")
     def origin(self, p):
         self.origin_domain = p.domain_name
         print(f"{self.origin_domain=}")
-        return ('origin', p.domain_name)
+        return ("origin", p.domain_name)
 
     @_("TTL INTEGER")
     def ttl(self, p):
         self.default_ttl = p.INTEGER
         print(f"{self.default_ttl=}")
-        return ('ttl', p.INTEGER)
+        return ("ttl", p.INTEGER)
 
     @_("DOMAIN_NAME")
     def domain_name(self, p):
-        return self.origin_domain if p.DOMAIN_NAME == "@" else p.DOMAIN_NAME
+        domain_name: str = p.DOMAIN_NAME
+        if domain_name == "@":
+            domain_name = self.origin_domain
+
+        if not domain_name.endswith(self.origin_domain):
+            domain_name = ".".join([domain_name, self.origin_domain])
+
+        self.previous_domain = domain_name
+        return domain_name
