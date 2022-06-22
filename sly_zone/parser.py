@@ -146,8 +146,5 @@ class ZoneParser(Parser):
         if domain_name == "@":
             domain_name = self.origin_domain
 
-        if not domain_name.endswith(self.origin_domain):
-            domain_name = ".".join([domain_name, self.origin_domain])
-
         self.previous_domain = domain_name
         return domain_name
