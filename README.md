@@ -1,2 +1,3 @@
 # bind_parser
-Simple bind zone file parser for python.
+
+Primitive BIND zone file parser. Parses bind zone files to primitive python types.

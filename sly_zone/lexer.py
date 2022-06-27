@@ -32,19 +32,19 @@ class ZoneLexer(Lexer):
     _IPV4_SEGMENT = r"((2[0-5]{2})|(1[0-9]{2})|([1-9]?[0-9]))"
 
     @_(r"({0}\.){{3}}({0})".format(_IPV4_SEGMENT))
-    def IPV4(self, t):
-        t.value = IPv4Address(t.value)
-        return t
+    def IPV4(self, token):
+        token.value = IPv4Address(token.value)
+        return token
 
     @_(r"([a-fA-F0-9]{0,4}:){2,7}[a-fA-F0-9]{0,4}")
-    def IPV6(self, t):
-        t.value = IPv6Address(t.value)
-        return t
+    def IPV6(self, token):
+        token.value = IPv6Address(token.value)
+        return token
 
     @_(r"([0-9]+)")
-    def INTEGER(self, t):
-        t.value = int(t.value)
-        return t
+    def INTEGER(self, token):
+        token.value = int(token.value)
+        return token
 
     CLASS = r"(IN|CH|CS|HS)"
     TTL = r"\$TTL"
@@ -62,23 +62,23 @@ class ZoneLexer(Lexer):
     DOMAIN_NAME = r"((\*\.)?[\w\-\.]+|@)"
 
     @_(r"\n+")
-    def ignore_newline(self, t):
-        self.lineno += t.value.count("\n")
+    def ignore_newline(self, token):
+        self.lineno += token.value.count("\n")
 
     @_(r"\(")
-    def ingnore_lparent(self, t):
+    def ingnore_lparent(self, token):
         self.scope += 1
 
     @_(r"\)")
-    def ingnore_rparent(self, t):
+    def ingnore_rparent(self, token):
         self.scope -= 1
 
     ignore_whitespace = r"\s+"
 
     @_(r";.*")
-    def ignore_comments(self, t):
-        self.lineno += t.value.count("\n")
+    def ignore_comments(self, token):
+        self.lineno += token.value.count("\n")
 
-    def error(self, t):
-        print(f'Line {self.lineno}: Bad character "{t.value[0]}"\n')
+    def error(self, token):
+        print(f'Line {self.lineno}: Bad character "{token.value[0]}"\n')
         self.index += 1
